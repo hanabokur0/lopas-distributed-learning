@@ -1,0 +1,66 @@
+name: Core CI
+
+on:
+  push:
+  pull_request:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: core-ci-${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  build-and-smoke:
+    name: TypeScript / smoke
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+
+      - name: Cache npm downloads
+        uses: actions/cache@v4
+        with:
+          path: ~/.npm
+          key: ${{ runner.os }}-node22-npm-${{ hashFiles('package-lock.json', 'package.json') }}
+          restore-keys: |
+            ${{ runner.os }}-node22-npm-
+
+      - name: Install declared dependencies
+        shell: bash
+        run: |
+          set -euo pipefail
+          if [[ -f package-lock.json ]]; then
+            npm ci
+          else
+            npm install --ignore-scripts
+          fi
+
+      # v0.1 package.json may not yet declare TypeScript as a devDependency.
+      # This fallback keeps CI usable now, and becomes a no-op once TypeScript is declared.
+      - name: Ensure TypeScript compiler
+        shell: bash
+        run: |
+          set -euo pipefail
+          if [[ ! -x node_modules/.bin/tsc ]]; then
+            npm install --no-save --ignore-scripts typescript@5.8.3
+          fi
+          ./node_modules/.bin/tsc --version
+
+      - name: Type check
+        run: npm run check
+
+      - name: Build
+        run: npm run build
+
+      - name: Smoke test
+        run: npm run smoke
