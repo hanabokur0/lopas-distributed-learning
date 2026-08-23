@@ -1,0 +1,14 @@
+{
+  "name": "lopas-distributed-learning",
+  "version": "0.1.0",
+  "description": "Local-first, asynchronous protocol learning with RII, context binding, lineage, and auditable receipts",
+  "type": "module",
+  "main": "dist/index.js",
+  "types": "dist/index.d.ts",
+  "scripts": {
+    "build": "tsc -p tsconfig.json",
+    "check": "tsc -p tsconfig.json --noEmit",
+    "smoke": "node tests/smoke.mjs"
+  },
+  "license": "MIT"
+}
