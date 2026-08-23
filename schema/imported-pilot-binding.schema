@@ -1,0 +1,43 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "Imported Pilot Binding",
+  "type": "object",
+  "required": [
+    "source_evidence_id",
+    "protocol_ref",
+    "origin_unit",
+    "local_unit",
+    "context_binding",
+    "imported_context",
+    "local_context"
+  ],
+  "properties": {
+    "source_evidence_id": {
+      "type": "string"
+    },
+    "protocol_ref": {
+      "type": "string"
+    },
+    "origin_unit": {
+      "type": "string"
+    },
+    "local_unit": {
+      "type": "string"
+    },
+    "lineage": {
+      "$ref": "./common.schema.json#/$defs/protocol_lineage"
+    },
+    "context_binding": {
+      "$ref": "./common.schema.json#/$defs/transfer_context_binding"
+    },
+    "imported_context": {
+      "type": "object",
+      "additionalProperties": true
+    },
+    "local_context": {
+      "type": "object",
+      "additionalProperties": true
+    }
+  },
+  "additionalProperties": false
+}
