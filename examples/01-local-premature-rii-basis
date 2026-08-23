@@ -1,0 +1,26 @@
+{
+  "evidence_scope": "local",
+  "decision_was": "premature",
+  "replay_changed": false,
+  "then": {
+    "state": "EXECUTE",
+    "target": "publish_full_program"
+  },
+  "now": {
+    "state": "EXECUTE",
+    "target": "publish_full_program"
+  },
+  "context_binding": {
+    "local_unit": "river-town-b",
+    "protocol_ref": "community-evening-market@local-v1",
+    "similarity": null,
+    "local_unknowns": [
+      "rain-season-attendance"
+    ],
+    "local_context": {
+      "population_band": "small-city",
+      "venue": "station-plaza",
+      "operating_window": "18:00-21:00"
+    }
+  }
+}
