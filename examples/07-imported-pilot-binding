@@ -1,0 +1,39 @@
+{
+  "source_evidence_id": "xunit-160e4dfc877ffc0b",
+  "protocol_ref": "community-evening-market@v2",
+  "origin_unit": "coastal-town-a",
+  "local_unit": "river-town-b",
+  "lineage": {
+    "source_receipt_refs": [
+      "receipt-coastal-017",
+      "receipt-coastal-023"
+    ],
+    "parent_protocol_refs": [
+      "community-evening-market@v1"
+    ],
+    "source_git_commit": "8e7a1d3f4a6b2c19",
+    "source_git_tag": "v2.0.0",
+    "source_repository": "example/coastal-community-protocols"
+  },
+  "context_binding": {
+    "similarity": 0.67,
+    "local_unknowns": [
+      "cleanup-capacity-at-peak",
+      "rain-season-attendance"
+    ]
+  },
+  "imported_context": {
+    "population_band": "small-city",
+    "venue": "harbor-plaza",
+    "operating_window": "18:00-21:00",
+    "last_transit": "21:30",
+    "cleanup_staff": 18
+  },
+  "local_context": {
+    "population_band": "small-city",
+    "venue": "station-plaza",
+    "operating_window": "18:00-21:00",
+    "last_transit": "22:10",
+    "cleanup_staff": 11
+  }
+}
