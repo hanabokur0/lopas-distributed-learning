@@ -1,4 +1,8 @@
-import { stableId } from "../canonical.js";
+import {
+  canonicalJson,
+  sha256,
+  stableId,
+} from "../canonical.js";
 import type { ReceiptEnvelope } from "../types.js";
 import { GENESIS_HASH, sealReceipt, verifyReceiptChain } from "./integrity.js";
 
