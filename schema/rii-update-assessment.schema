@@ -1,0 +1,189 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "RII Update Assessment",
+  "type": "object",
+  "required": [
+    "evidence_scope",
+    "rii_update_candidate",
+    "disposition",
+    "aggregate_rii_score_update"
+  ],
+  "properties": {
+    "evidence_scope": {
+      "$ref": "./common.schema.json#/$defs/evidence_scope"
+    },
+    "rii_update_candidate": {
+      "type": "object",
+      "required": [
+        "HCD",
+        "BFR",
+        "BU",
+        "OR"
+      ],
+      "properties": {
+        "HCD": {
+          "type": "object",
+          "required": [
+            "status",
+            "hidden_cause_candidates",
+            "evidence"
+          ],
+          "properties": {
+            "status": {
+              "$ref": "./common.schema.json#/$defs/rii_component_status"
+            },
+            "hidden_cause_candidates": {
+              "type": "array",
+              "items": {
+                "type": "string"
+              }
+            },
+            "evidence": {
+              "type": "array",
+              "items": {
+                "type": "string"
+              }
+            }
+          },
+          "additionalProperties": false
+        },
+        "BFR": {
+          "type": "object",
+          "required": [
+            "status",
+            "failure_mode",
+            "boundary",
+            "evidence"
+          ],
+          "properties": {
+            "status": {
+              "$ref": "./common.schema.json#/$defs/rii_component_status"
+            },
+            "failure_mode": {
+              "type": "string",
+              "enum": [
+                "none_observed",
+                "premature_closure",
+                "missed_branch_or_boundary",
+                "unresolved"
+              ]
+            },
+            "boundary": {
+              "type": "string"
+            },
+            "evidence": {
+              "type": "array",
+              "items": {
+                "type": "string"
+              }
+            }
+          },
+          "additionalProperties": false
+        },
+        "BU": {
+          "type": "object",
+          "required": [
+            "status",
+            "action",
+            "target",
+            "automatic_apply",
+            "boundary_update_eligible",
+            "rationale"
+          ],
+          "properties": {
+            "status": {
+              "$ref": "./common.schema.json#/$defs/rii_component_status"
+            },
+            "action": {
+              "type": "string",
+              "enum": [
+                "retain_boundary",
+                "protect_previous_boundary",
+                "review_tighten_boundary",
+                "review_expand_branch_or_boundary",
+                "observe_more",
+                "pilot_locally",
+                "retain_external_evidence"
+              ]
+            },
+            "target": {
+              "type": "string"
+            },
+            "automatic_apply": {
+              "const": false
+            },
+            "boundary_update_eligible": {
+              "type": "boolean"
+            },
+            "rationale": {
+              "type": "string"
+            }
+          },
+          "additionalProperties": false
+        },
+        "OR": {
+          "type": "object",
+          "required": [
+            "status",
+            "interpretation"
+          ],
+          "properties": {
+            "status": {
+              "$ref": "./common.schema.json#/$defs/rii_component_status"
+            },
+            "interpretation": {
+              "type": "string"
+            }
+          },
+          "additionalProperties": false
+        }
+      },
+      "additionalProperties": false
+    },
+    "disposition": {
+      "type": "string",
+      "enum": [
+        "retain",
+        "review",
+        "observe_more",
+        "pilot"
+      ]
+    },
+    "aggregate_rii_score_update": {
+      "type": "null"
+    }
+  },
+  "allOf": [
+    {
+      "if": {
+        "properties": {
+          "evidence_scope": {
+            "const": "imported"
+          }
+        },
+        "required": [
+          "evidence_scope"
+        ]
+      },
+      "then": {
+        "properties": {
+          "rii_update_candidate": {
+            "properties": {
+              "BU": {
+                "properties": {
+                  "automatic_apply": {
+                    "const": false
+                  },
+                  "boundary_update_eligible": {
+                    "const": false
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+  ],
+  "additionalProperties": false
+}
