@@ -1,0 +1,45 @@
+{
+  "evidence_scope": "imported",
+  "rii_update_candidate": {
+    "HCD": {
+      "status": "candidate",
+      "hidden_cause_candidates": [
+        "remote_success_may_depend_on_context",
+        "transferable_structure_may_exist",
+        "local_unknowns_may_control_transferability"
+      ],
+      "evidence": [
+        "evidence_scope=imported",
+        "remote_outcome=correct",
+        "local_unit=river-town-b",
+        "origin_unit=coastal-town-a",
+        "protocol_ref=community-evening-market@v2",
+        "context_similarity=0.67",
+        "local_unknown=cleanup-capacity-at-peak",
+        "local_unknown=rain-season-attendance"
+      ]
+    },
+    "BFR": {
+      "status": "insufficient",
+      "failure_mode": "unresolved",
+      "boundary": "local_unvalidated:community-evening-market@v2",
+      "evidence": [
+        "Remote success does not prove that any local rejection or routing boundary failed."
+      ]
+    },
+    "BU": {
+      "status": "candidate",
+      "action": "retain_boundary",
+      "target": "community-evening-market@v2",
+      "automatic_apply": false,
+      "boundary_update_eligible": true,
+      "rationale": "External success is a hypothesis for local testing. Run a local PILOT before any local boundary update becomes eligible."
+    },
+    "OR": {
+      "status": "candidate",
+      "interpretation": "Reinterpret remote success as a transferable question, not an imported answer. Local outcome evidence is required before RII can update the local boundary."
+    }
+  },
+  "disposition": "pilot",
+  "aggregate_rii_score_update": null
+}
