@@ -1,0 +1,27 @@
+# Workflows
+
+## `ci.yml` — Core CI
+
+Runs on pushes, pull requests, and manual dispatch.
+
+Checks:
+
+1. TypeScript type check
+2. Build
+3. Smoke test
+
+The workflow prefers `npm ci` when `package-lock.json` exists. Until TypeScript is declared in `devDependencies`, it installs TypeScript 5.8.3 as a CI-only fallback.
+
+## `contracts.yml` — Contract CI
+
+Runs when `schemas/`, `examples/`, or the workflow itself changes.
+
+Checks:
+
+1. Every JSON Schema is valid Draft 2020-12
+2. Relative `$ref` values resolve locally/offline
+3. Every positive example validates against its contract
+4. The intentional imported-direct-BU example is rejected
+5. The portable receipt example's `record_sha256` matches its canonical unsigned receipt
+
+The negative example is part of the contract: if it starts passing, CI fails.
