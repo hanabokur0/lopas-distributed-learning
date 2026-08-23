@@ -1,0 +1,21 @@
+{
+  "evidence_scope": "local",
+  "decision_was": "unknown",
+  "replay_changed": false,
+  "then": {
+    "state": "HOLD",
+    "target": "community-evening-market@rain-season"
+  },
+  "now": {
+    "state": "HOLD",
+    "target": "community-evening-market@rain-season"
+  },
+  "context_binding": {
+    "local_unit": "river-town-b",
+    "protocol_ref": "community-evening-market@rain-season",
+    "similarity": null,
+    "local_unknowns": [
+      "rain-season-attendance"
+    ]
+  }
+}
