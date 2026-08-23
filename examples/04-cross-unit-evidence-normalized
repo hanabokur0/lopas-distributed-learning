@@ -1,0 +1,55 @@
+{
+  "kind": "cross_unit_evidence",
+  "evidence_id": "xunit-160e4dfc877ffc0b",
+  "framework": "community-program-routing",
+  "local_unit": "river-town-b",
+  "source_unit": "coastal-town-a",
+  "protocol_ref": "community-evening-market@v2",
+  "lineage": {
+    "source_receipt_refs": [
+      "receipt-coastal-017",
+      "receipt-coastal-023"
+    ],
+    "parent_protocol_refs": [
+      "community-evening-market@v1"
+    ],
+    "source_git_commit": "8e7a1d3f4a6b2c19",
+    "source_git_tag": "v2.0.0",
+    "source_repository": "example/coastal-community-protocols"
+  },
+  "source_context": {
+    "population_band": "small-city",
+    "venue": "harbor-plaza",
+    "operating_window": "18:00-21:00",
+    "last_transit": "21:30",
+    "cleanup_staff": 18
+  },
+  "local_context": {
+    "population_band": "small-city",
+    "venue": "station-plaza",
+    "operating_window": "18:00-21:00",
+    "last_transit": "22:10",
+    "cleanup_staff": 11
+  },
+  "context_binding": {
+    "similarity": 0.67,
+    "local_unknowns": [
+      "cleanup-capacity-at-peak",
+      "rain-season-attendance"
+    ]
+  },
+  "source_outcome": {
+    "decision_was": "correct",
+    "what_happened": "The source unit completed twelve weekly runs without exceeding its cleanup capacity.",
+    "decision": {
+      "state": "EXECUTE",
+      "target": "community-evening-market@v2"
+    }
+  },
+  "transferability": {
+    "status": "remote_only",
+    "local_verdict": "PILOT",
+    "local_outcome_ref": null,
+    "updates_local_rii": false
+  }
+}
