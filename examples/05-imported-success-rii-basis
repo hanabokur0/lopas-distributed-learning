@@ -1,0 +1,37 @@
+{
+  "evidence_scope": "imported",
+  "decision_was": "correct",
+  "replay_changed": false,
+  "then": {
+    "state": "EXECUTE",
+    "target": "community-evening-market@v2"
+  },
+  "now": {
+    "state": "local_unvalidated",
+    "target": "community-evening-market@v2"
+  },
+  "context_binding": {
+    "local_unit": "river-town-b",
+    "origin_unit": "coastal-town-a",
+    "protocol_ref": "community-evening-market@v2",
+    "similarity": 0.67,
+    "local_unknowns": [
+      "cleanup-capacity-at-peak",
+      "rain-season-attendance"
+    ],
+    "imported_context": {
+      "population_band": "small-city",
+      "venue": "harbor-plaza",
+      "operating_window": "18:00-21:00",
+      "last_transit": "21:30",
+      "cleanup_staff": 18
+    },
+    "local_context": {
+      "population_band": "small-city",
+      "venue": "station-plaza",
+      "operating_window": "18:00-21:00",
+      "last_transit": "22:10",
+      "cleanup_staff": 11
+    }
+  }
+}
