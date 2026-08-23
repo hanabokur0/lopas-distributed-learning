@@ -1,0 +1,49 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "Local Outcome Evidence",
+  "type": "object",
+  "required": [
+    "kind",
+    "observation_id",
+    "framework",
+    "outcome_recorded_at",
+    "decision_was",
+    "what_happened",
+    "then",
+    "now"
+  ],
+  "properties": {
+    "kind": {
+      "const": "local_outcome_evidence"
+    },
+    "observation_id": {
+      "type": "string"
+    },
+    "framework": {
+      "type": "string"
+    },
+    "outcome_recorded_at": {
+      "type": "string",
+      "format": "date-time"
+    },
+    "decision_was": {
+      "$ref": "./common.schema.json#/$defs/outcome_quality"
+    },
+    "what_happened": {
+      "type": "string"
+    },
+    "then": {
+      "$ref": "./common.schema.json#/$defs/decision_snapshot"
+    },
+    "now": {
+      "$ref": "./common.schema.json#/$defs/decision_snapshot"
+    },
+    "source_evidence_id": {
+      "type": "string"
+    },
+    "context_binding": {
+      "$ref": "./common.schema.json#/$defs/context_binding"
+    }
+  },
+  "additionalProperties": false
+}
