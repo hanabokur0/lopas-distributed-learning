@@ -1,0 +1,40 @@
+{
+  "kind": "local_outcome_evidence",
+  "observation_id": "obs-river-2026-09-12-001",
+  "framework": "community-program-routing",
+  "outcome_recorded_at": "2026-09-12T21:45:00+09:00",
+  "decision_was": "correct",
+  "what_happened": "The local pilot completed with eleven cleanup staff; no capacity threshold was exceeded.",
+  "then": {
+    "state": "PILOT",
+    "target": "community-evening-market@v2"
+  },
+  "now": {
+    "state": "PILOT",
+    "target": "community-evening-market@v2"
+  },
+  "source_evidence_id": "xunit-160e4dfc877ffc0b",
+  "context_binding": {
+    "local_unit": "river-town-b",
+    "origin_unit": "coastal-town-a",
+    "protocol_ref": "community-evening-market@v2",
+    "similarity": 0.67,
+    "local_unknowns": [
+      "rain-season-attendance"
+    ],
+    "imported_context": {
+      "population_band": "small-city",
+      "venue": "harbor-plaza",
+      "operating_window": "18:00-21:00",
+      "last_transit": "21:30",
+      "cleanup_staff": 18
+    },
+    "local_context": {
+      "population_band": "small-city",
+      "venue": "station-plaza",
+      "operating_window": "18:00-21:00",
+      "last_transit": "22:10",
+      "cleanup_staff": 11
+    }
+  }
+}
