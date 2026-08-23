@@ -1,0 +1,55 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "Receipt Envelope",
+  "type": "object",
+  "required": [
+    "schema_version",
+    "receipt_id",
+    "recorded_at",
+    "kind",
+    "payload",
+    "integrity"
+  ],
+  "properties": {
+    "schema_version": {
+      "const": "0.1.0"
+    },
+    "receipt_id": {
+      "type": "string"
+    },
+    "recorded_at": {
+      "type": "string",
+      "format": "date-time"
+    },
+    "kind": {
+      "type": "string"
+    },
+    "payload": {},
+    "integrity": {
+      "type": "object",
+      "required": [
+        "prev_hash",
+        "record_sha256"
+      ],
+      "properties": {
+        "prev_hash": {
+          "oneOf": [
+            {
+              "const": "genesis"
+            },
+            {
+              "type": "string",
+              "pattern": "^[0-9a-f]{64}$"
+            }
+          ]
+        },
+        "record_sha256": {
+          "type": "string",
+          "pattern": "^[0-9a-f]{64}$"
+        }
+      },
+      "additionalProperties": false
+    }
+  },
+  "additionalProperties": false
+}
