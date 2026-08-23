@@ -29,6 +29,7 @@
       "type": "object",
       "required": [
         "prev_hash",
+        "content_sha256",
         "record_sha256"
       ],
       "properties": {
@@ -42,6 +43,10 @@
               "pattern": "^[0-9a-f]{64}$"
             }
           ]
+        },
+        "content_sha256": {
+          "type": "string",
+          "pattern": "^[0-9a-f]{64}$"
         },
         "record_sha256": {
           "type": "string",
