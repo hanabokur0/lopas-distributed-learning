@@ -2,492 +2,313 @@
 
 **Local learning. Asynchronous sharing. No forced global convergence.**
 
-`lopas-distributed-learning` is an experimental protocol for sharing learned decision structures across independent units without forcing those units to share the same model, context, thresholds, or conclusions.
+LoPAS Distributed Learning is a local-first protocol for exchanging learned decision structures across independent units without allowing remote evidence to automatically rewrite local decision boundaries.
 
-A unit may be a region, organization, team, community, agent, device, or local AI system.
+The core principle is simple:
 
-Each unit learns from **its own outcomes**.
+> **Do not synchronize conclusions. Synchronize the ability to inspect how conclusions were learned.**
 
-Other units can share mature protocols, receipts, failures, and context — but imported evidence does **not** directly rewrite local decision boundaries.
+A successful protocol from another place is not treated as a local truth.
 
-Instead:
+It is treated as:
 
-> Remote knowledge changes local questions before it changes local rules.
-
-This repository is a working PoC built around **LoPAS RII (Reverse Inference Index)**, deterministic routing, append-only receipts, replay, context binding, and protocol lineage.
+> **a better question for this place.**
 
 ---
 
-## Why
+## Status
 
-Most distributed learning systems ask:
+Current release target:
 
-> How do we synchronize the model?
+```text
+v0.1.1
+```
 
-This project asks a different question:
+This repository is an experimental protocol and reference implementation.
 
-> How can independent systems learn locally, exchange what they discovered, and remain different?
+The current release focuses on:
 
-The goal is not global synchronization.
+- local RII learning
+- cross-unit evidence exchange
+- context binding
+- local PILOT gating
+- outcome-driven learning
+- auditable receipts
+- protocol lineage
+- deterministic canonicalization
+- executable safety invariants
 
-The goal is **eventual resonance**.
+This is not a production autonomous-learning system.
+
+---
+
+# Why this exists
+
+Distributed systems often assume that successful knowledge should eventually converge.
+
+That assumption is not always desirable.
+
+Different regions, organizations, teams, environments, machines, or AI systems may operate under different:
+
+- constraints
+- thresholds
+- histories
+- contexts
+- risks
+- goals
+
+A protocol that succeeds in one unit may fail in another.
+
+Therefore:
+
+```text
+remote success != local truth
+```
+
+LoPAS Distributed Learning keeps learning local while allowing evidence to move.
+
+The intended flow is:
 
 ```text
 Unit A
-  observe
-    ↓
-  decide
-    ↓
-  outcome
-    ↓
-  learn locally
-    ↓
-  mature protocol
-    ↓
-       asynchronous sharing
-                ↓
-             Unit B
-          context binding
-                ↓
-              pilot
-                ↓
-          local outcome
-                ↓
-          local learning
-                ↓
-          local protocol fork
-                ↓
-              re-share
+  Observation
+      ↓
+  Decision
+      ↓
+  Outcome
+      ↓
+  Local learning
+      ↓
+  Mature protocol / evidence
+      ↓
+      ↓ asynchronous exchange
+      ↓
+Unit B
+  Imported evidence
+      ↓
+  Context Binding
+      ↓
+  PILOT
+      ↓
+  Local outcome
+      ↓
+  Local RII
+      ↓
+  Local protocol update candidate
 ```
 
-A protocol that worked in one environment is not assumed to work elsewhere.
+The important distinction is:
 
-It becomes a **candidate for local re-testing**.
+```text
+evidence travels
+authority does not
+```
 
 ---
 
-## Core idea
+# Core invariants
 
-### 1. Learning stays local
+The following rules are protocol-level invariants.
 
-RII is treated as a local learning mechanism.
+They should not be weakened casually.
 
-A unit can update its learning evidence from its **own observed outcomes**.
+## 1. RII remains local learning
+
+RII describes learning from outcomes observed by the local unit.
+
+Remote evidence does not directly become local learning.
 
 ```text
-Local Observation
-      ↓
+remote outcome
+    ≠
+local RII update
+```
+
+---
+
+## 2. Imported evidence never directly updates local RII
+
+Imported evidence always has:
+
+```text
+evidence_scope = imported
+```
+
+and must not directly authorize a local boundary update.
+
+In particular:
+
+```text
+boundary_update_eligible = false
+automatic_apply = false
+```
+
+---
+
+## 3. Remote success becomes a PILOT candidate
+
+A successful protocol observed elsewhere may justify local experimentation.
+
+It does not justify automatic adoption.
+
+```text
+remote correct
+    ↓
+PILOT
+    ↓
+local execution
+    ↓
+local outcome
+```
+
+Only after a local outcome exists may local learning become eligible.
+
+---
+
+## 4. A local outcome is required before boundary learning
+
+Imported success alone is insufficient.
+
+The learning bridge is:
+
+```text
 Decision
-      ↓
+    ↓
 Outcome
-      ↓
+    ↓
 Replay
-      ↓
-RII Update Candidate
-      ↓
-Human / policy review
-      ↓
-Optional local boundary revision
+    ↓
+RII update candidate
 ```
 
-Imported success does not increase local RII.
-
-Imported failure does not prove that a local boundary is wrong.
-
----
-
-### 2. Sharing does not mean copying
-
-Remote evidence enters the system as `cross_unit_evidence`.
+For imported protocols:
 
 ```text
-Remote Protocol + Outcome
-          ↓
-Cross-unit Evidence
-          ↓
-Context Binding
-          ↓
-PILOT / OBSERVE_MORE
-          ↓
-Local Outcome
-          ↓
+Imported evidence
+    ↓
+PILOT
+    ↓
+Local outcome
+    ↓
 Local RII
 ```
 
-The imported protocol can be:
+---
 
-- adopted as a local pilot
-- transformed
-- partially reused
-- rejected
-- retained as unknown
-- forked into a new local protocol
+## 5. Boundary changes are never automatically applied
 
-There is no requirement to merge back into a global master.
+Every RII update assessment keeps:
+
+```text
+automatic_apply = false
+```
+
+The system generates structured update candidates.
+
+It does not silently rewrite decision boundaries.
 
 ---
 
-### 3. Context travels with the protocol
+## 6. Unknown is retained
 
-A protocol without context is dangerous.
+Unknown evidence is not treated as failure.
 
-Imported evidence can retain:
+```text
+Unknown != Failed
+```
 
-- `origin_unit`
-- `local_unit`
-- `protocol_ref`
-- source context
-- local context
-- context similarity
-- unresolved local variables
-- source receipt
-- parent protocol
-- Git commit / lineage information
+When evidence is insufficient, the preferred action is:
+
+```text
+OBSERVE_MORE
+```
+
+rather than forcing an unsupported classification.
+
+---
+
+## 7. Context and lineage travel with evidence
+
+Transferred evidence should preserve enough information to answer:
+
+- where did this come from?
+- under what context did it work?
+- what protocol produced it?
+- which prior receipt or Git state does it descend from?
+- what local unknowns remain?
+
+Evidence without provenance is weaker evidence.
+
+---
+
+# What is RII?
+
+RII means:
+
+**Reverse Inference Index**
+
+It is used here as a structured method for reviewing a decision after an outcome becomes known.
+
+RII is composed of four conceptual components:
+
+```text
+HCD — Hidden Cause Detection
+BFR — Boundary Failure Recognition
+BU  — Boundary Update
+OR  — Outcome Reinterpretation
+```
+
+The conceptual formula is:
+
+```text
+RII =
+  0.30 × HCD
++ 0.30 × BFR
++ 0.25 × BU
++ 0.15 × OR
+```
+
+The current repository does **not** automatically calculate or apply a global numeric RII score.
+
+Instead, it produces structured RII update assessments.
 
 Example:
 
-```yaml
-kind: cross_unit_evidence
-
-source_unit: region-a
-local_unit: region-b
-
-protocol_ref: protocol-x@a1
-
-source_outcome:
-  decision_was: correct
-
-context_binding:
-  similarity: 0.62
-
-  imported_context:
-    environment: "region-a"
-    constraints:
-      - "constraint-a"
-      - "constraint-b"
-
-  local_context:
-    environment: "region-b"
-
-  local_unknowns:
-    - "unknown-variable-1"
-    - "unknown-variable-2"
-
-transferability:
-  status: remote_only
-  local_verdict: PILOT
-  local_outcome_ref: null
-  updates_local_rii: false
+```json
+{
+  "HCD": {
+    "status": "candidate"
+  },
+  "BFR": {
+    "status": "supported",
+    "failure_mode": "premature_closure"
+  },
+  "BU": {
+    "status": "candidate",
+    "action": "review_tighten_boundary",
+    "automatic_apply": false,
+    "boundary_update_eligible": true
+  },
+  "OR": {
+    "status": "supported"
+  }
+}
 ```
 
-A high similarity score is **not** permission to auto-adopt the protocol.
-
-Local evidence is still required.
-
----
-
-## RII learning bridge
-
-The current PoC maps outcome and replay evidence into the four RII components.
-
-### HCD — Hidden Cause Detection
-
-What hidden condition may explain the outcome?
-
-### BFR — Boundary Failure Recognition
-
-Which decision boundary may have failed?
-
-### BU — Boundary Update
-
-What boundary change should be considered?
-
-### OR — Outcome Reinterpretation
-
-How should the original result be reinterpreted after seeing reality?
-
-The system generates an **RII update candidate**.
-
-It does not automatically rewrite the decision system.
-
-```yaml
-aggregate_rii_score_update: null
-
-BU:
-  automatic_apply: false
-```
-
----
-
-## Safety invariant
-
-The most important rule in v0.3:
+The repository deliberately separates:
 
 ```text
-imported evidence
-    =>
-boundary_update_eligible == false
-```
-
-Remote knowledge may trigger:
-
-```text
-PILOT
-OBSERVE_MORE
-HOLD
-```
-
-but never direct local boundary mutation.
-
-For local evidence:
-
-```text
-local known outcome
-    =>
-boundary update MAY become eligible
-    =>
-automatic_apply == false
-```
-
-So even local learning creates a **candidate**, not an uncontrolled self-modification.
-
----
-
-## Outcome classes
-
-The current prototype uses four outcome classes.
-
-| Outcome | Meaning |
-|---|---|
-| `correct` | The previous decision was supported by the observed outcome |
-| `premature` | The system closed or routed too early |
-| `missed` | A relevant branch, candidate, condition, or route was missing |
-| `unknown` | Available evidence is still insufficient |
-
-`unknown` is not treated as failure.
-
-It is retained for future observation.
-
----
-
-## Local RII behavior
-
-| Evidence | Outcome | Replay | Candidate behavior |
-|---|---|---|---|
-| local | `correct` | same | preserve boundary |
-| local | `correct` | changed | review possible regression |
-| local | `premature` | same/changed | review tighter boundary |
-| local | `missed` | same/changed | review missing branch/candidate/gate |
-| local | `unknown` | any | retain unknown, observe more |
-| imported | `correct` | n/a | `pilot_locally` |
-| imported | `premature` | n/a | retain as negative transfer evidence |
-| imported | `missed` | n/a | retain as negative transfer evidence |
-| imported | `unknown` | n/a | imported unknown retention |
-
-A newer rule is not automatically considered better.
-
-If a previously `correct` historical decision changes under the current router, the system flags a possible **regression** for review.
-
----
-
-## Architecture
-
-```mermaid
-flowchart TD
-
-    A[Local Observation]
-    B[Deterministic Decision]
-    C[Append-only Receipt]
-    D[Observed Outcome]
-    E[Replay with Current Pack]
-    F[RII Update Candidate]
-    G[Local Protocol Revision]
-
-    A --> B
-    B --> C
-    C --> D
-    D --> E
-    E --> F
-    F --> G
-
-    H[Remote Unit]
-    I[Cross-unit Evidence]
-    J[Context Binding]
-    K[Local Pilot]
-
-    H --> I
-    I --> J
-    J --> K
-    K --> A
-```
-
-The two learning paths remain separate:
-
-```text
-LOCAL
-
-Observation
-→ Decision
-→ Outcome
-→ Replay
-→ Local RII
-
-
-DISTRIBUTED
-
-Remote Protocol
-→ Cross-unit Evidence
-→ Context Binding
-→ Local Pilot
-→ Local Outcome
-→ Local RII
+evidence
+assessment
+boundary eligibility
+actual application
 ```
 
 ---
 
-## Why deterministic routing?
+# Outcome classes
 
-The current PoC uses a deterministic LoPAS Coordinate Router.
-
-For the same domain pack and answer set, the router should produce the same decision.
-
-This makes it possible to compare:
-
-```text
-then
-vs
-now
-```
-
-without confusing model randomness with rule evolution.
-
-Current router-side indicators include:
-
-- `DoQ-R`
-- `RDI-R`
-- `BCDI-R`
-- `SCI-R`
-
-These are operational Router indicators and are treated separately from LoPAS Semantic `-S` indicators.
-
----
-
-## Receipts
-
-Decision history is stored as append-only receipts.
-
-A receipt can preserve:
-
-- observation
-- decision
-- framework
-- domain
-- answers
-- outcome
-- provenance
-- lineage
-- prior hash
-- replay result
-- RII update candidate
-- cross-unit evidence
-
-This allows the system to ask:
-
-> What did this unit believe at that time?
-
-rather than only:
-
-> What does the current version believe now?
-
----
-
-## Git as protocol lineage
-
-Git is not only source control in this design.
-
-It can become part of the learning lineage.
-
-```text
-protocol v0.1
-    ↓
-local outcome
-    ↓
-RII candidate
-    ↓
-boundary revision
-    ↓
-commit
-    ↓
-protocol v0.2
-```
-
-Another unit can fork it:
-
-```text
-region-a/protocol-x
-        │
-        ├── region-b fork
-        │       ↓
-        │   local outcome
-        │       ↓
-        │   region-b revision
-        │
-        └── region-c fork
-                ↓
-            transformed version
-```
-
-No branch is required to become globally canonical.
-
-A later unit can compare lineage and selectively reuse only the structures that resonate with its own environment.
-
----
-
-## Quick start
-
-### Install
-
-```bash
-npm install
-```
-
-### Run tests
-
-```bash
-npm test
-```
-
-### Run router demo
-
-```bash
-npx tsx demo.ts
-```
-
----
-
-## CLI
-
-### Record a deterministic local decision
-
-```bash
-npx tsx src/cli.ts route \
-  it_support \
-  q_error_type=auth_error \
-  q_internal_network_login=works_internally
-```
-
----
-
-### Add the real-world outcome
-
-```bash
-npx tsx src/cli.ts outcome \
-  <receipt-id> \
-  correct \
-  "authentication route resolved the incident"
-```
-
-Outcome values:
+Local outcomes currently use four classes.
 
 ```text
 correct
@@ -496,369 +317,1157 @@ missed
 unknown
 ```
 
----
+## correct
 
-### Replay historical decisions
-
-Run old observations against the current domain pack:
-
-```bash
-npx tsx src/cli.ts replay it_support
-```
+The previous decision was supported by the observed outcome.
 
 Possible result:
 
 ```text
-= receipt-a: route
-≠ receipt-b: route → ask
+retain_boundary
 ```
 
-A changed decision is evidence for review — not automatic proof of improvement.
+If replay later disagrees with a previously correct decision, this may become a regression candidate.
 
 ---
 
-### Generate RII update candidates
+## premature
 
-Preview:
+The decision closed too early or acted before sufficient evidence existed.
 
-```bash
-npx tsx src/cli.ts rii it_support
-```
-
-Append candidates to the receipt log:
-
-```bash
-npx tsx src/cli.ts rii it_support --append
-```
-
----
-
-### Import evidence from another unit
-
-```bash
-npx tsx src/cli.ts import-evidence \
-  docs/imported-evidence.example.yaml
-```
-
-This creates `cross_unit_evidence`.
-
-It does **not** update local RII.
-
----
-
-### Run a local pilot from imported evidence
-
-```bash
-npx tsx src/cli.ts pilot-import \
-  <cross-unit-evidence-id> \
-  it_support \
-  q_error_type=auth_error \
-  q_internal_network_login=works_internally
-```
-
-The resulting local receipt retains lineage back to the imported evidence.
-
-After a local outcome is observed, the unit may generate its own local RII candidate.
-
----
-
-### Inspect receipts
-
-```bash
-npx tsx src/cli.ts list
-```
-
----
-
-### Verify the receipt chain
-
-```bash
-npx tsx src/cli.ts verify
-```
-
----
-
-## Current repository structure
+Possible result:
 
 ```text
-.
-├── src/
-│   ├── cli.ts
-│   ├── engine/
-│   │   ├── core.ts
-│   │   ├── receipt.ts
-│   │   ├── rii.ts
-│   │   └── session.ts
-│   └── data/
-│       └── diagnosis_types/
-│           └── it_support/
-│               ├── manifest.yaml
-│               ├── questions.yaml
-│               ├── axes.yaml
-│               └── candidate_regions.yaml
-│
-├── receipts/
-│   └── log.yaml
-│
-├── tests/
-│   ├── router.test.ts
-│   ├── receipt.test.ts
-│   └── rii.test.ts
-│
-├── docs/
-│   ├── distributed-rii-v0.3.md
-│   ├── imported-evidence.example.yaml
-│   ├── rii-imported-candidate.example.yaml
-│   └── rii-update-candidate.example.yaml
-│
-├── patches/
-│   └── v0.2-to-v0.3.patch
-│
-├── demo.ts
-└── package.json
+review_tighten_boundary
 ```
 
 ---
 
-## Design principles
+## missed
 
-### Local first
+A relevant branch, route, or boundary was not recognized.
 
-Every unit must remain useful without a network connection.
+Possible result:
 
 ```text
-observe
-→ decide
-→ act
-→ observe outcome
-→ learn
+review_expand_branch_or_boundary
 ```
 
-should work locally.
-
 ---
 
-### Asynchronous by default
+## unknown
 
-Units do not need real-time synchronization.
+The observed result remains insufficient.
 
-A protocol may travel minutes, days, months, or years after it was created.
-
-Delay is not necessarily failure.
-
-It may represent **local maturation time**.
-
----
-
-### No global model required
-
-Different units may maintain:
-
-- different thresholds
-- different protocol forks
-- different evidence
-- different contexts
-- different conclusions
-
-The network does not need to converge on one global state.
-
----
-
-### Share evidence, not authority
-
-A remote unit can say:
-
-> This worked here, under these conditions.
-
-It cannot say:
-
-> Therefore your boundary must change.
-
----
-
-### Preserve uncertainty
-
-Unknown evidence remains unknown until more evidence appears.
-
-The protocol should make uncertainty transportable instead of forcing premature classification.
-
----
-
-### Fork before merge
-
-Local transformation is expected.
-
-A transferred protocol may become:
+Possible result:
 
 ```text
-X
-↓
-X-B
-↓
-X-B2
+observe_more
 ```
 
-without being considered a broken copy of `X`.
-
-Variation is part of the learning process.
+Unknown does not automatically become failure.
 
 ---
 
-## Eventual resonance
+# Imported evidence behavior
 
-Traditional eventual consistency assumes distributed nodes eventually converge toward the same state.
+Imported evidence is intentionally handled differently from local evidence.
 
-This project does not require that.
+## Imported correct outcome
 
-Instead, it explores **eventual resonance**:
-
-> Independent units remain locally autonomous, but structures that prove useful across different environments can be rediscovered, adapted, and propagated.
-
-The shared object is not a global truth.
-
-It is a **traceable structure with evidence**.
+A successful remote outcome may produce:
 
 ```text
-local variation
-      +
-local selection
-      +
-asynchronous exchange
-      +
+pilot_locally
+```
+
+but:
+
+```text
+boundary_update_eligible = false
+automatic_apply = false
+```
+
+---
+
+## Imported premature or missed outcome
+
+Negative remote evidence may be retained as transfer evidence.
+
+It does not directly rewrite the local boundary.
+
+Possible result:
+
+```text
+retain_external_evidence
+```
+
+---
+
+## Imported unknown outcome
+
+Unresolved external evidence remains unresolved.
+
+Possible result:
+
+```text
+observe_more
+```
+
+---
+
+# Architecture
+
+The core implementation is intentionally small and dependency-light.
+
+```text
+src/
+├─ learning/
+│  ├─ rii.ts
+│  └─ local-outcome.ts
+│
+├─ distributed/
+│  ├─ evidence.ts
+│  └─ pilot.ts
+│
+├─ receipts/
+│  ├─ integrity.ts
+│  └─ store.ts
+│
+├─ adapters/
+│  └─ router.ts
+│
+├─ canonical.ts
+├─ types.ts
+└─ index.ts
+```
+
+---
+
+## learning/
+
+Contains local outcome and RII assessment logic.
+
+Responsibilities include:
+
+- interpreting local outcomes
+- identifying possible boundary failures
+- generating RII update candidates
+- preserving Unknown Retention
+- enforcing `automatic_apply = false`
+
+---
+
+## distributed/
+
+Handles evidence that originated outside the current unit.
+
+Responsibilities include:
+
+- cross-unit evidence normalization
+- context binding
+- transferability state
+- local PILOT gating
+- imported evidence restrictions
+
+Remote evidence cannot directly become local RII evidence.
+
+---
+
+## receipts/
+
+Provides append-only receipt structures and integrity verification.
+
+Responsibilities include:
+
+- receipt envelopes
+- previous-record chaining
+- content hashing
+- record hashing
+- chain verification
+- in-memory reference storage
+
+---
+
+## adapters/
+
+Defines interfaces between this protocol and external decision systems.
+
+The core does not require a specific AI model or router.
+
+A compatible implementation can attach through a replayable decision adapter.
+
+Possible external systems include:
+
+```text
+deterministic rules
+AI model
+RAG pipeline
+agent
+workflow engine
+human decision process
+```
+
+The protocol is concerned with the evidence and learning boundary rather than the implementation of the original decision-maker.
+
+---
+
+# Replayable decision systems
+
+A major design goal is to compare:
+
+```text
+what the system decided then
+```
+
+with:
+
+```text
+what the system would decide now
+```
+
+That enables:
+
+```text
+Decision
+    ↓
+Outcome
+    ↓
+Replay
+    ↓
+Difference
+    ↓
+RII update candidate
+```
+
+A previously correct decision that now replays differently may indicate a regression.
+
+A previously missed route that now becomes visible may indicate successful learning.
+
+---
+
+# Cross-unit evidence
+
+Cross-unit evidence records what happened in another unit without treating that result as local authority.
+
+Example concept:
+
+```json
+{
+  "kind": "cross_unit_evidence",
+  "local_unit": "region-b",
+  "source_unit": "region-a",
+  "protocol_ref": "protocol-x@v1",
+  "transferability": {
+    "status": "remote_only",
+    "local_verdict": "PILOT",
+    "local_outcome_ref": null,
+    "updates_local_rii": false
+  }
+}
+```
+
+The important field is:
+
+```text
+updates_local_rii = false
+```
+
+---
+
+# Context Binding
+
+Transferred protocols should not be evaluated independently of their environment.
+
+Context Binding can include:
+
+```text
+origin unit
+local unit
+protocol reference
+context similarity
+source context
+local context
+local unknowns
+```
+
+Example:
+
+```json
+{
+  "similarity": 0.67,
+  "local_unknowns": [
+    "cleanup_capacity",
+    "rain_season"
+  ]
+}
+```
+
+Similarity is evidence for inspection.
+
+It is not permission to bypass the PILOT stage.
+
+---
+
+# Local PILOT flow
+
+A remote success can be transformed into a local pilot binding.
+
+Conceptually:
+
+```text
+Cross-unit evidence
+        ↓
+Context Binding
+        ↓
+assertPilotAllowed()
+        ↓
+ImportedPilotBinding
+        ↓
+local execution
+        ↓
+LocalOutcomeEvidence
+```
+
+Only after this local outcome exists should the local RII path be evaluated.
+
+---
+
+# Receipts
+
+The protocol uses receipts to preserve an auditable history of observations, evidence, decisions, outcomes, and learning assessments.
+
+A receipt envelope contains:
+
+```text
+schema_version
+receipt_id
+recorded_at
+kind
+payload
+integrity
+```
+
+Integrity currently separates three concepts.
+
+## content_sha256
+
+Identifies the content being recorded.
+
+Conceptually:
+
+```text
+SHA256(
+  canonical_json({
+    kind,
+    payload
+  })
+)
+```
+
+Two receipts containing the same semantic content may have the same:
+
+```text
+content_sha256
+```
+
+---
+
+## receipt_id
+
+Identifies a particular receipt event.
+
+Two separate recordings of the same content should be allowed to have:
+
+```text
+same content_sha256
+different receipt_id
+```
+
+---
+
+## record_sha256
+
+Identifies and protects the full receipt record.
+
+It includes record-specific information such as:
+
+```text
+receipt_id
+recorded_at
+prev_hash
+content_sha256
+payload
+```
+
+This allows receipt records to form a chain.
+
+---
+
+# Receipt chain
+
+Conceptually:
+
+```text
+genesis
+   ↓
+receipt A
+record_sha256
+   ↓
+receipt B.prev_hash
+   ↓
+receipt B.record_sha256
+   ↓
+receipt C.prev_hash
+```
+
+If an earlier receipt changes, later verification should fail.
+
+This is intended as lightweight tamper evidence.
+
+It is not a blockchain and does not provide decentralized consensus.
+
+---
+
+# Canonicalization
+
+Hashing requires deterministic serialization.
+
+Objects are therefore canonicalized before hashing.
+
+Equivalent objects with different key ordering should produce the same semantic representation.
+
+Example:
+
+```json
+{
+  "a": 1,
+  "b": 2
+}
+```
+
+and:
+
+```json
+{
+  "b": 2,
+  "a": 1
+}
+```
+
+should canonicalize identically.
+
+This is important for:
+
+- stable evidence IDs
+- content hashes
+- receipt verification
+- delayed/offline exchange
+
+---
+
+# Protocol lineage
+
+Evidence may carry lineage such as:
+
+```text
+source receipt references
+parent protocol references
+source Git commit
+source Git tag
+source repository
+```
+
+This enables a protocol to answer:
+
+```text
+Where did this structure come from?
+```
+
+Git is particularly useful here.
+
+A protocol may evolve like this:
+
+```text
+v0.1.0
+   ↓
+local observation
+   ↓
+outcome
+   ↓
+RII review
+   ↓
+commit
+   ↓
+fork
+   ↓
+local adaptation
+   ↓
+v0.1.1
+```
+
+Forks are not required to merge back.
+
+Different units may legitimately preserve different descendants.
+
+---
+
+# Eventual resonance
+
+This project does not require eventual consistency.
+
+Instead, it explores:
+
+> **eventual resonance**
+
+Independent units may mature separately.
+
+They may exchange evidence asynchronously.
+
+Useful structures may be:
+
+- copied
+- tested
+- rejected
+- adapted
+- forked
+- rediscovered
+
+without requiring every unit to converge to the same state.
+
+Conceptually:
+
+```text
+local maturation
+      ↓
+delayed exchange
+      ↓
+local inspection
+      ↓
+PILOT / rejection / observation
+      ↓
+local outcome
+      ↓
+local fork
+      ↓
+possible re-sharing
+```
+
+The objective is not:
+
+```text
+one global answer
+```
+
+but:
+
+```text
+many inspectable local learning histories
+that remain connectable
+```
+
+---
+
+# Quick start
+
+Install dependencies:
+
+```bash
+npm install
+```
+
+Run the complete local verification:
+
+```bash
+npm test
+```
+
+This should run:
+
+```text
+repository layout verification
+TypeScript check
+build
+smoke tests
+```
+
+Individual commands are also available:
+
+```bash
+npm run verify:layout
+npm run check
+npm run build
+npm run smoke
+```
+
+---
+
+# Library usage
+
+The current repository is a library core.
+
+It does not currently expose the old experimental CLI interface.
+
+Example imports may look like:
+
+```typescript
+import {
+  normalizeCrossUnitEvidence,
+  assessImportedEvidence,
+  assertPilotAllowed,
+  createImportedPilotBinding,
+  MemoryReceiptStore,
+} from "lopas-distributed-learning";
+```
+
+Example cross-unit evidence:
+
+```typescript
+const evidence = normalizeCrossUnitEvidence({
+  framework: "example-framework",
+  local_unit: "region-b",
+  source_unit: "region-a",
+  protocol_ref: "protocol-x@v1",
+
+  context_binding: {
+    similarity: 0.67,
+    local_unknowns: [
+      "local_condition_a",
+      "local_condition_b"
+    ]
+  },
+
+  source_outcome: {
+    decision_was: "correct",
+    what_happened:
+      "The protocol produced a successful result in the source unit."
+  }
+});
+```
+
+Evaluate imported evidence:
+
+```typescript
+const assessment =
+  assessImportedEvidence(evidence);
+```
+
+A successful remote result remains imported evidence.
+
+It should therefore lead to a local pilot rather than a direct boundary update.
+
+```typescript
+assertPilotAllowed(evidence);
+
+const pilot =
+  createImportedPilotBinding(evidence);
+```
+
+Receipts may then be recorded:
+
+```typescript
+const store =
+  new MemoryReceiptStore();
+
+store.append(
+  "cross_unit_evidence",
+  evidence
+);
+
+store.append(
+  "rii_update_candidate",
+  assessment
+);
+```
+
+---
+
+# Schemas
+
+Machine-readable protocol contracts live in:
+
+```text
+schemas/
+```
+
+Current schemas include:
+
+```text
+common.schema.json
+rii-basis.schema.json
+rii-update-assessment.schema.json
+cross-unit-evidence-input.schema.json
+cross-unit-evidence.schema.json
+imported-pilot-binding.schema.json
+local-outcome-evidence.schema.json
+receipt-envelope.schema.json
+```
+
+Canonical schemas use JSON Schema Draft 2020-12.
+
+JSON is used for canonical schema definitions because cross-file `$ref` resolution is simpler and more portable for offline validation.
+
+YAML may still be used for human-authored protocol data in downstream applications.
+
+---
+
+# Examples
+
+Reference examples live in:
+
+```text
+examples/
+```
+
+The examples demonstrate a complete transfer path:
+
+```text
+remote success
+    ↓
+cross-unit evidence
+    ↓
+imported RII assessment
+    ↓
+PILOT
+    ↓
+local outcome
+    ↓
+local RII
+```
+
+An intentional invalid example is also included:
+
+```text
+examples/invalid/
+```
+
+It attempts to make imported evidence directly eligible for a boundary update.
+
+The schema must reject it.
+
+This is deliberate.
+
+---
+
+# Tests and CI
+
+The repository treats invariants as executable contracts.
+
+## Core CI
+
+```text
+.github/workflows/ci.yml
+```
+
+Core CI verifies:
+
+```text
+repository layout
+TypeScript
+build
+smoke tests
+```
+
+The repository-layout check is intended to detect packaging mistakes such as:
+
+```text
+leading whitespace in directory names
+missing extensions
+misplaced GitHub workflows
+missing required files
+```
+
+---
+
+## Contract CI
+
+```text
+.github/workflows/contracts.yml
+```
+
+Contract CI verifies:
+
+- JSON syntax
+- JSON Schema validity
+- positive examples
+- intentional invalid examples
+- receipt content hashes
+- receipt record hashes
+
+A prohibited structure passing validation should fail CI.
+
+---
+
+# Repository layout
+
+```text
+lopas-distributed-learning/
+├─ README.md
+├─ LICENSE
+├─ package.json
+├─ package-lock.json
+├─ tsconfig.json
+├─ SRC_NOTES.md
+│
+├─ src/
+│  ├─ learning/
+│  │  ├─ rii.ts
+│  │  └─ local-outcome.ts
+│  │
+│  ├─ distributed/
+│  │  ├─ evidence.ts
+│  │  └─ pilot.ts
+│  │
+│  ├─ receipts/
+│  │  ├─ integrity.ts
+│  │  └─ store.ts
+│  │
+│  ├─ adapters/
+│  │  └─ router.ts
+│  │
+│  ├─ canonical.ts
+│  ├─ types.ts
+│  └─ index.ts
+│
+├─ tests/
+│  └─ smoke.mjs
+│
+├─ scripts/
+│  └─ verify-layout.mjs
+│
+├─ schemas/
+├─ examples/
+├─ docs/
+│
+└─ .github/
+   └─ workflows/
+      ├─ ci.yml
+      └─ contracts.yml
+```
+
+---
+
+# Design principles
+
+## Local first
+
+Each unit learns primarily from its own observed outcomes.
+
+---
+
+## Share evidence, not authority
+
+External success is evidence for evaluation.
+
+It is not permission to overwrite local boundaries.
+
+---
+
+## Preserve uncertainty
+
+Unknown states should survive until evidence becomes sufficient.
+
+---
+
+## Fork before forced merge
+
+Different contexts may require different protocol descendants.
+
+Divergence is not automatically failure.
+
+---
+
+## Generator != grader != gate != executor
+
+A system that generates a decision does not automatically gain authority to:
+
+- judge its correctness
+- approve its own boundary change
+- execute the resulting action
+
+These roles should remain separable.
+
+---
+
+## Receipts before memory claims
+
+A learning claim should preferably point to:
+
+```text
+decision
+outcome
+evidence
+receipt
 lineage
-      =
-distributed protocol evolution
 ```
 
----
-
-## Possible applications
-
-The protocol is domain-agnostic in principle.
-
-Potential units include:
-
-- local governments
-- regional infrastructure operators
-- disaster-response teams
-- organizations
-- factories
-- research groups
-- AI agents
-- local-first software
-- offline / intermittent networks
-- community knowledge systems
-- distributed simulation environments
-
-The current implementation is only a small deterministic PoC.
+rather than depending only on narrative memory.
 
 ---
 
-## What this project is not
+# Non-goals
 
-This project is **not**:
+This repository is not:
 
-- federated model training
-- automatic global consensus
-- a blockchain
-- a centralized policy server
+- federated neural-network training
+- global model synchronization
+- blockchain consensus
 - autonomous self-modifying AI
-- proof that RII is a scientifically validated cognitive metric
+- a universal decision engine
+- a scientific proof of RII
+- a centralized policy authority
+- a production-grade distributed database
 
-It is currently an experimental protocol and implementation for exploring **auditable local learning and cross-unit knowledge transfer**.
-
----
-
-## Current status
-
-**v0.3 — Distributed RII**
-
-Implemented:
-
-- deterministic local routing
-- append-only decision receipts
-- outcomes
-- historical replay
-- RII update candidates
-- local/imported evidence separation
-- Context Binding
-- cross-unit evidence
-- local pilots from imported protocols
-- protocol/evidence lineage
-- canonical evidence IDs
-- receipt hash-chain verification
-- explicit prevention of automatic imported boundary updates
+It is a protocol experiment and reference implementation for local-first, auditable distributed learning.
 
 ---
 
-## Next directions
+# Experimental status
 
-Possible next steps:
+RII and related LoPAS constructs are experimental.
 
-### v0.4 — Resonance aggregation
-
-Track the same protocol lineage across multiple independent units without turning cross-unit success into a global truth score.
+They should currently be understood as:
 
 ```text
-A success
-B success
-C transformed success
-D rejected
+protocol design constructs
 ```
 
-becomes transferability evidence rather than forced consensus.
+rather than externally validated scientific metrics.
 
-### v0.5 — Protocol promotion
+The project is intended to make hypotheses inspectable and executable.
 
-Define when repeated local validation is strong enough to publish a protocol as a mature reusable candidate.
-
-### v0.6 — Offline exchange
-
-Package protocol + context + receipts into portable bundles that can be exchanged over delayed or intermittent networks.
-
-### v0.7 — Git-native lineage
-
-Bind protocol versions and learning receipts directly to commits, tags, forks, and release artifacts.
+It does not claim that the current weights, categories, or learning rules are universally optimal.
 
 ---
 
-## Minimal philosophy
+# AI integration
+
+AI systems may participate in this architecture, but AI is not required.
+
+Possible roles include:
 
 ```text
-Do not synchronize conclusions.
-Synchronize the ability to inspect how conclusions were learned.
+observation extraction
+candidate generation
+decision replay
+context comparison
+uncertainty discovery
+protocol explanation
 ```
 
-And:
+AI output should remain distinguishable from:
 
 ```text
-A successful protocol from another place
-is not an answer.
+observed outcome
+local evidence
+boundary authority
+execution authority
+```
 
-It is a better question
-for this place.
+In particular:
+
+```text
+AI recommendation
+    ≠
+automatic_apply
 ```
 
 ---
 
-## Related LoPAS concepts
+# Security position
 
-This repository currently connects:
+The current receipt hash chain provides tamper evidence.
 
-- **RII** — Reverse Inference Index
-- **DDA** — Deliberative Decision Architecture
-- **HOLD / REFRAME / REJECT / OBSERVE_MORE / PILOT / EXECUTE**
-- **Unknown Retention**
-- **Decision Receipts**
-- **Replay**
-- **Protocol Lineage**
-- **Context Binding**
-- **Cross-unit Resonance**
+It does not provide:
 
-The broader goal is to explore a system in which independent units can mature locally and still participate in a larger learning network without losing their own context.
+- identity authentication
+- digital signatures
+- Byzantine consensus
+- secure distributed replication
+- confidential storage
+
+Future implementations may attach:
+
+```text
+signatures
+key identities
+Git signed commits
+external timestamping
+append-only storage
+```
+
+without changing the core local-learning rule.
 
 ---
 
-**LoPAS Distributed Learning**
+# Git as protocol lineage
 
-_Local autonomy, shared evidence, asynchronous resonance._
+Git can act as a natural lineage layer.
+
+Useful relationships include:
+
+```text
+receipt
+    ↓
+protocol candidate
+    ↓
+commit
+    ↓
+tag
+    ↓
+fork
+    ↓
+local outcome
+    ↓
+next candidate
+```
+
+A receipt may eventually reference:
+
+```yaml
+protocol:
+  repository: hanabokur0/lopas-distributed-learning
+  release: v0.1.1
+  commit: <git-sha>
+```
+
+This makes the protocol state used by a decision inspectable later.
+
+---
+
+# Release lineage
+
+## v0.1.0
+
+Initial standalone public release.
+
+Established the main design concepts:
+
+- local RII
+- imported evidence restrictions
+- context binding
+- PILOT-before-learning
+- receipts
+- eventual resonance
+
+The initial public package also exposed repository-layout and documentation inconsistencies.
+
+Those issues are retained as part of the project lineage rather than rewriting the release history.
+
+---
+
+## v0.1.1
+
+Packaging and contract repair release.
+
+Primary goals:
+
+- align repository paths with the actual TypeScript imports
+- activate GitHub Actions from the correct root path
+- align README with the current library API
+- add repository layout validation
+- separate receipt event identity from content identity
+- strengthen receipt contract validation
+
+This release demonstrates the same outcome-review loop the repository is designed to model:
+
+```text
+release
+    ↓
+external review
+    ↓
+observed failure
+    ↓
+boundary failure recognition
+    ↓
+protocol repair
+    ↓
+new release
+```
+
+---
+
+# Future directions
+
+Possible future work includes:
+
+## Cross-unit resonance aggregation
+
+Observe whether the same protocol structure succeeds independently in multiple environments without converting those results into a global mandatory rule.
+
+---
+
+## Protocol promotion
+
+Define explicit criteria for:
+
+```text
+candidate
+→ pilot
+→ locally validated
+→ mature
+→ shareable
+```
+
+---
+
+## Offline exchange
+
+Support:
+
+```text
+filesystem
+LAN
+Git bundles
+NAS
+delayed synchronization
+```
+
+for disconnected environments.
+
+---
+
+## Git-native lineage
+
+Tie receipts, protocol versions, commits, forks, and release tags more directly together.
+
+---
+
+## Multi-unit replay
+
+Compare historical decisions across multiple independent contexts while preserving local authority.
+
+---
+
+# Philosophy
+
+The project does not assume that distributed intelligence should become one mind.
+
+A different possibility is:
+
+```text
+many local systems
+learning independently
+sharing inspectable evidence
+without surrendering local context
+```
+
+The goal is not perfect synchronization.
+
+The goal is continued compatibility between independently evolving systems.
+
+In short:
+
+> **Local learning. Shared evidence. Inspectable lineage. No forced convergence.**
+
+---
+
+# License
+
+MIT License.
+
+See:
+
+```text
+LICENSE
+```
