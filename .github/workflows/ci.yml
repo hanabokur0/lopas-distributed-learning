@@ -13,14 +13,17 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-      - uses: actions/checkout@v4
+      - name: Checkout repository
+        uses: actions/checkout@v7
 
-      - uses: actions/setup-node@v4
+      - name: Set up Node
+        uses: actions/setup-node@v7
         with:
-          node-version: "22"
-          cache: npm
+          node-version: "24"
+          package-manager-cache: false
 
-      - run: npm ci
+      - name: Install dependencies
+        run: npm install
 
       - name: Verify repository layout
         run: npm run verify:layout
