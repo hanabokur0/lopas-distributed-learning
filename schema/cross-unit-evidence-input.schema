@@ -1,0 +1,81 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "Cross Unit Evidence Input",
+  "type": "object",
+  "required": [
+    "framework",
+    "local_unit",
+    "source_unit",
+    "protocol_ref",
+    "source_outcome"
+  ],
+  "properties": {
+    "framework": {
+      "type": "string"
+    },
+    "local_unit": {
+      "type": "string"
+    },
+    "source_unit": {
+      "type": "string"
+    },
+    "protocol_ref": {
+      "type": "string"
+    },
+    "lineage": {
+      "$ref": "./common.schema.json#/$defs/protocol_lineage"
+    },
+    "source_context": {
+      "type": "object",
+      "additionalProperties": true
+    },
+    "local_context": {
+      "type": "object",
+      "additionalProperties": true
+    },
+    "context_binding": {
+      "type": "object",
+      "properties": {
+        "similarity": {
+          "oneOf": [
+            {
+              "type": "number",
+              "minimum": 0,
+              "maximum": 1
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "local_unknowns": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        }
+      },
+      "additionalProperties": false
+    },
+    "source_outcome": {
+      "type": "object",
+      "required": [
+        "decision_was",
+        "what_happened"
+      ],
+      "properties": {
+        "decision_was": {
+          "$ref": "./common.schema.json#/$defs/outcome_quality"
+        },
+        "what_happened": {
+          "type": "string"
+        },
+        "decision": {
+          "$ref": "./common.schema.json#/$defs/decision_snapshot"
+        }
+      },
+      "additionalProperties": false
+    }
+  },
+  "additionalProperties": false
+}
