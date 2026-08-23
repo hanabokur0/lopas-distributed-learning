@@ -142,6 +142,7 @@ export interface LocalOutcomeEvidence {
 
 export interface ReceiptIntegrity {
   prev_hash: string;
+  content_sha256: string;
   record_sha256: string;
 }
 
