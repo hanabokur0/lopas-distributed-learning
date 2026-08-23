@@ -1,0 +1,39 @@
+{
+  "evidence_scope": "local",
+  "rii_update_candidate": {
+    "HCD": {
+      "status": "insufficient",
+      "hidden_cause_candidates": [],
+      "evidence": [
+        "evidence_scope=local",
+        "outcome=unknown",
+        "replay_changed=false",
+        "then=HOLD:community-evening-market@rain-season",
+        "now=HOLD:community-evening-market@rain-season",
+        "outcome did not establish decision quality"
+      ]
+    },
+    "BFR": {
+      "status": "insufficient",
+      "failure_mode": "unresolved",
+      "boundary": "HOLD:community-evening-market@rain-season",
+      "evidence": [
+        "boundary failure cannot be inferred from an unknown local outcome"
+      ]
+    },
+    "BU": {
+      "status": "insufficient",
+      "action": "observe_more",
+      "target": "HOLD:community-evening-market@rain-season",
+      "automatic_apply": false,
+      "boundary_update_eligible": false,
+      "rationale": "Unknown Retention: preserve uncertainty; do not mutate the boundary."
+    },
+    "OR": {
+      "status": "insufficient",
+      "interpretation": "Outcome remains unresolved; retain the case for later observation rather than classifying it as failure."
+    }
+  },
+  "disposition": "observe_more",
+  "aggregate_rii_score_update": null
+}
