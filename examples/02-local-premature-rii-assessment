@@ -1,0 +1,40 @@
+{
+  "evidence_scope": "local",
+  "rii_update_candidate": {
+    "HCD": {
+      "status": "candidate",
+      "hidden_cause_candidates": [
+        "decision_closed_before_discriminating_evidence_was_sufficient"
+      ],
+      "evidence": [
+        "evidence_scope=local",
+        "outcome=premature",
+        "replay_changed=false",
+        "then=EXECUTE:publish_full_program",
+        "now=EXECUTE:publish_full_program"
+      ]
+    },
+    "BFR": {
+      "status": "supported",
+      "failure_mode": "premature_closure",
+      "boundary": "EXECUTE:publish_full_program",
+      "evidence": [
+        "local outcome explicitly classifies the historical decision as premature"
+      ]
+    },
+    "BU": {
+      "status": "candidate",
+      "action": "review_tighten_boundary",
+      "target": "EXECUTE:publish_full_program",
+      "automatic_apply": false,
+      "boundary_update_eligible": true,
+      "rationale": "Local evidence indicates premature closure. Review stricter evidence, confidence, or gating requirements."
+    },
+    "OR": {
+      "status": "supported",
+      "interpretation": "The old decision was premature and replay still reproduces it; the failure remains structurally reproducible."
+    }
+  },
+  "disposition": "review",
+  "aggregate_rii_score_update": null
+}
