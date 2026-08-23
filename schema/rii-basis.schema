@@ -1,0 +1,32 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "RII Basis",
+  "type": "object",
+  "required": [
+    "decision_was",
+    "replay_changed",
+    "then",
+    "now"
+  ],
+  "properties": {
+    "evidence_scope": {
+      "$ref": "./common.schema.json#/$defs/evidence_scope"
+    },
+    "decision_was": {
+      "$ref": "./common.schema.json#/$defs/outcome_quality"
+    },
+    "replay_changed": {
+      "type": "boolean"
+    },
+    "then": {
+      "$ref": "./common.schema.json#/$defs/decision_snapshot"
+    },
+    "now": {
+      "$ref": "./common.schema.json#/$defs/decision_snapshot"
+    },
+    "context_binding": {
+      "$ref": "./common.schema.json#/$defs/context_binding"
+    }
+  },
+  "additionalProperties": false
+}
