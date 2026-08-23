@@ -3,178 +3,397 @@ name: Contract CI
 on:
   push:
     paths:
-      - 'schemas/**'
-      - 'examples/**'
-      - '.github/workflows/contracts.yml'
+      - "schemas/**"
+      - "examples/**"
+      - "src/receipts/**"
+      - "src/canonical.ts"
+      - ".github/workflows/contracts.yml"
+
   pull_request:
     paths:
-      - 'schemas/**'
-      - 'examples/**'
-      - '.github/workflows/contracts.yml'
+      - "schemas/**"
+      - "examples/**"
+      - "src/receipts/**"
+      - "src/canonical.ts"
+      - ".github/workflows/contracts.yml"
+
   workflow_dispatch:
 
 permissions:
   contents: read
 
-concurrency:
-  group: contract-ci-${{ github.workflow }}-${{ github.ref }}
-  cancel-in-progress: true
-
 jobs:
-  validate-contracts:
-    name: Schemas / examples / receipt integrity
+  contracts:
+    name: Validate schemas and examples
     runs-on: ubuntu-latest
-    timeout-minutes: 10
 
     steps:
-      - name: Checkout
+      - name: Checkout repository
         uses: actions/checkout@v4
 
       - name: Set up Python
         uses: actions/setup-python@v5
         with:
-          python-version: '3.12'
-
-      - name: Cache pip downloads
-        uses: actions/cache@v4
-        with:
-          path: ~/.cache/pip
-          key: ${{ runner.os }}-python312-jsonschema-v1
-          restore-keys: |
-            ${{ runner.os }}-python312-jsonschema-
+          python-version: "3.12"
 
       - name: Install validator
-        run: python -m pip install 'jsonschema>=4.23,<5'
-
-      - name: Validate schemas and examples
-        shell: bash
         run: |
-          python <<'PY'
-          import hashlib
+          python -m pip install --upgrade pip
+          python -m pip install "jsonschema[format]>=4.23,<5"
+
+      - name: Validate JSON files
+        run: |
+          python - <<'PY'
           import json
-          import sys
           from pathlib import Path
 
-          import jsonschema
-          from jsonschema.validators import validator_for
+          roots = [
+              Path("schemas"),
+              Path("examples"),
+          ]
+
+          count = 0
+
+          for root in roots:
+              if not root.exists():
+                  raise SystemExit(f"Missing directory: {root}")
+
+              for path in root.rglob("*.json"):
+                  with path.open("r", encoding="utf-8") as f:
+                      json.load(f)
+
+                  print(f"JSON OK: {path}")
+                  count += 1
+
+          if count == 0:
+              raise SystemExit("No JSON files found")
+
+          print(f"\nJSON syntax validation passed: {count} files")
+          PY
+
+      - name: Validate schemas and positive examples
+        run: |
+          python - <<'PY'
+          import json
+          from pathlib import Path
+          from jsonschema import Draft202012Validator, FormatChecker
           from referencing import Registry, Resource
 
-          root = Path.cwd()
-          schema_dir = root / "schemas"
-          example_dir = root / "examples"
+          SCHEMA_DIR = Path("schemas")
+          EXAMPLE_DIR = Path("examples")
 
-          if not schema_dir.is_dir():
-              raise SystemExit("schemas/ is missing")
-          if not example_dir.is_dir():
-              raise SystemExit("examples/ is missing")
+          schema_files = sorted(SCHEMA_DIR.glob("*.schema.json"))
 
-          schema_paths = sorted(schema_dir.glob("*.schema.json"))
-          if not schema_paths:
-              raise SystemExit("No schemas/*.schema.json files found")
+          if not schema_files:
+              raise SystemExit("No schema files found")
 
-          # The checked-in schemas intentionally omit $id. For validation only,
-          # assign each schema its own file:// URI so relative $ref values resolve
-          # completely offline against the local schemas/ directory.
           schemas = {}
+
           registry = Registry()
 
-          for path in schema_paths:
+          for path in schema_files:
               schema = json.loads(path.read_text(encoding="utf-8"))
-              schema = dict(schema)
-              schema["$id"] = path.resolve().as_uri()
+
+              Draft202012Validator.check_schema(schema)
+
+              uri = path.resolve().as_uri()
+              resource = Resource.from_contents(schema)
+              registry = registry.with_resource(uri, resource)
+
               schemas[path.name] = schema
 
-          for path in schema_paths:
-              schema = schemas[path.name]
-              registry = registry.with_resource(
-                  schema["$id"], Resource.from_contents(schema)
-              )
+              print(f"Schema OK: {path}")
 
-          for path in schema_paths:
-              schema = schemas[path.name]
-              cls = validator_for(schema)
-              cls.check_schema(schema)
-              cls(schema, registry=registry)
-              print(f"schema PASS  {path.name}")
+          def load(name):
+              path = SCHEMA_DIR / name
+              if not path.exists():
+                  raise SystemExit(f"Missing schema: {path}")
+              return schemas[name]
 
-          def schema_for_example(name: str) -> str:
-              if "rii-basis" in name:
-                  return "rii-basis.schema.json"
-              if "rii-assessment" in name:
-                  return "rii-update-assessment.schema.json"
-              mapping = {
-                  "03-imported-success-input.json": "cross-unit-evidence-input.schema.json",
-                  "04-cross-unit-evidence-normalized.json": "cross-unit-evidence.schema.json",
-                  "07-imported-pilot-binding.json": "imported-pilot-binding.schema.json",
-                  "08-local-outcome-after-imported-pilot.json": "local-outcome-evidence.schema.json",
-                  "13-receipt-envelope-cross-unit.json": "receipt-envelope.schema.json",
-              }
-              try:
-                  return mapping[name]
-              except KeyError as exc:
-                  raise SystemExit(
-                      f"No schema mapping for examples/{name}; update Contract CI when adding a new example contract."
-                  ) from exc
+          mappings = {
+              "01-local-premature-rii-basis.json":
+                  "rii-basis.schema.json",
 
-          valid_examples = sorted(example_dir.glob("*.json"))
-          if not valid_examples:
-              raise SystemExit("No examples/*.json files found")
+              "02-local-premature-rii-assessment.json":
+                  "rii-update-assessment.schema.json",
 
-          for path in valid_examples:
-              schema_name = schema_for_example(path.name)
-              schema = schemas[schema_name]
-              cls = validator_for(schema)
-              validator = cls(schema, registry=registry)
-              instance = json.loads(path.read_text(encoding="utf-8"))
-              validator.validate(instance)
-              print(f"example PASS {path.name} -> {schema_name}")
+              "03-imported-success-input.json":
+                  "cross-unit-evidence-input.schema.json",
 
-          invalid_path = example_dir / "invalid" / "imported-direct-boundary-update.INVALID.json"
-          if not invalid_path.is_file():
-              raise SystemExit(f"Expected negative example is missing: {invalid_path}")
+              "04-cross-unit-evidence-normalized.json":
+                  "cross-unit-evidence.schema.json",
 
-          invalid_schema = schemas["rii-update-assessment.schema.json"]
-          invalid_validator = validator_for(invalid_schema)(invalid_schema, registry=registry)
-          invalid_instance = json.loads(invalid_path.read_text(encoding="utf-8"))
+              "05-imported-success-rii-basis.json":
+                  "rii-basis.schema.json",
 
-          try:
-              invalid_validator.validate(invalid_instance)
-          except jsonschema.ValidationError as exc:
-              print(f"negative PASS {invalid_path.name} was rejected: {exc.message}")
-          else:
-              raise SystemExit(
-                  "Negative contract example unexpectedly validated: imported evidence must not enable direct boundary update"
-              )
+              "06-imported-success-rii-assessment.json":
+                  "rii-update-assessment.schema.json",
 
-          # Computational integrity check for the portable receipt example.
-          # Mirrors src/receipts/integrity.ts:
-          # record_sha256 = SHA256(canonical_json(unsigned_receipt))
-          receipt_path = example_dir / "13-receipt-envelope-cross-unit.json"
-          receipt = json.loads(receipt_path.read_text(encoding="utf-8"))
-          unsigned = {
-              "schema_version": receipt["schema_version"],
-              "receipt_id": receipt["receipt_id"],
-              "recorded_at": receipt["recorded_at"],
-              "kind": receipt["kind"],
-              "payload": receipt["payload"],
-              "integrity": {"prev_hash": receipt["integrity"]["prev_hash"]},
+              "07-imported-pilot-binding.json":
+                  "imported-pilot-binding.schema.json",
+
+              "08-local-outcome-after-imported-pilot.json":
+                  "local-outcome-evidence.schema.json",
+
+              "09-local-rii-basis-after-pilot.json":
+                  "rii-basis.schema.json",
+
+              "10-local-rii-assessment-after-pilot.json":
+                  "rii-update-assessment.schema.json",
+
+              "11-local-unknown-rii-basis.json":
+                  "rii-basis.schema.json",
+
+              "12-local-unknown-rii-assessment.json":
+                  "rii-update-assessment.schema.json",
+
+              "13-receipt-envelope-cross-unit.json":
+                  "receipt-envelope.schema.json",
           }
-          canonical = json.dumps(
-              unsigned,
-              ensure_ascii=False,
-              sort_keys=True,
-              separators=(",", ":"),
-          )
-          actual = hashlib.sha256(canonical.encode("utf-8")).hexdigest()
-          expected = receipt["integrity"]["record_sha256"]
-          if actual != expected:
-              raise SystemExit(
-                  f"Receipt hash mismatch: expected={expected} actual={actual}"
+
+          validated = 0
+
+          for example_name, schema_name in mappings.items():
+              example_path = EXAMPLE_DIR / example_name
+
+              if not example_path.exists():
+                  raise SystemExit(
+                      f"Missing positive example: {example_path}"
+                  )
+
+              instance = json.loads(
+                  example_path.read_text(encoding="utf-8")
               )
-          print(f"receipt PASS {receipt_path.name} sha256={actual}")
+
+              schema_path = SCHEMA_DIR / schema_name
+              schema = load(schema_name)
+
+              validator = Draft202012Validator(
+                  schema,
+                  registry=registry,
+                  format_checker=FormatChecker(),
+              )
+
+              errors = sorted(
+                  validator.iter_errors(instance),
+                  key=lambda e: list(e.absolute_path),
+              )
+
+              if errors:
+                  print(
+                      f"\nValidation failed: "
+                      f"{example_name} -> {schema_name}"
+                  )
+
+                  for error in errors:
+                      location = ".".join(
+                          str(x) for x in error.absolute_path
+                      )
+
+                      print(
+                          f"- {location or '<root>'}: "
+                          f"{error.message}"
+                      )
+
+                  raise SystemExit(1)
+
+              print(
+                  f"Example OK: "
+                  f"{example_name} -> {schema_name}"
+              )
+
+              validated += 1
 
           print(
-              f"Contract CI OK: {len(schema_paths)} schemas, "
-              f"{len(valid_examples)} positive examples, 1 negative example, 1 receipt hash"
+              f"\nPositive contract validation passed: "
+              f"{validated} examples"
           )
           PY
+
+      - name: Verify intentional invalid example is rejected
+        run: |
+          python - <<'PY'
+          import json
+          from pathlib import Path
+          from jsonschema import Draft202012Validator
+          from referencing import Registry, Resource
+
+          schema_dir = Path("schemas")
+
+          registry = Registry()
+
+          schemas = {}
+
+          for path in schema_dir.glob("*.schema.json"):
+              schema = json.loads(
+                  path.read_text(encoding="utf-8")
+              )
+
+              registry = registry.with_resource(
+                  path.resolve().as_uri(),
+                  Resource.from_contents(schema),
+              )
+
+              schemas[path.name] = schema
+
+          invalid_path = Path(
+              "examples/invalid/"
+              "imported-direct-boundary-update.INVALID.json"
+          )
+
+          if not invalid_path.exists():
+              raise SystemExit(
+                  f"Missing invalid example: {invalid_path}"
+              )
+
+          instance = json.loads(
+              invalid_path.read_text(encoding="utf-8")
+          )
+
+          schema = schemas[
+              "rii-update-assessment.schema.json"
+          ]
+
+          validator = Draft202012Validator(
+              schema,
+              registry=registry,
+          )
+
+          errors = list(
+              validator.iter_errors(instance)
+          )
+
+          if not errors:
+              raise SystemExit(
+                  "INVALID example unexpectedly passed schema validation"
+              )
+
+          print(
+              "Intentional invalid example rejected as expected"
+          )
+
+          for error in errors:
+              location = ".".join(
+                  str(x) for x in error.absolute_path
+              )
+
+              print(
+                  f"- {location or '<root>'}: "
+                  f"{error.message}"
+              )
+          PY
+
+      - name: Verify receipt content and record hashes
+        run: |
+          python - <<'PY'
+          import hashlib
+          import json
+          from pathlib import Path
+
+          path = Path(
+              "examples/13-receipt-envelope-cross-unit.json"
+          )
+
+          if not path.exists():
+              raise SystemExit(
+                  f"Missing receipt example: {path}"
+              )
+
+          receipt = json.loads(
+              path.read_text(encoding="utf-8")
+          )
+
+          def canonical_json(value):
+              return json.dumps(
+                  value,
+                  ensure_ascii=False,
+                  sort_keys=True,
+                  separators=(",", ":"),
+              )
+
+          # content_sha256 identifies the semantic receipt content:
+          # kind + payload.
+          content = {
+              "kind": receipt["kind"],
+              "payload": receipt["payload"],
+          }
+
+          content_actual = hashlib.sha256(
+              canonical_json(content).encode("utf-8")
+          ).hexdigest()
+
+          content_expected = (
+              receipt["integrity"]["content_sha256"]
+          )
+
+          if content_actual != content_expected:
+              raise SystemExit(
+                  "Receipt content hash mismatch:\n"
+                  f"expected={content_expected}\n"
+                  f"actual={content_actual}"
+              )
+
+          print(
+              f"content_sha256 OK: {content_actual}"
+          )
+
+          # record_sha256 identifies this particular receipt record.
+          # prev_hash and content_sha256 are part of the signed record.
+          unsigned = {
+              "schema_version":
+                  receipt["schema_version"],
+
+              "receipt_id":
+                  receipt["receipt_id"],
+
+              "recorded_at":
+                  receipt["recorded_at"],
+
+              "kind":
+                  receipt["kind"],
+
+              "payload":
+                  receipt["payload"],
+
+              "integrity": {
+                  "prev_hash":
+                      receipt["integrity"]["prev_hash"],
+
+                  "content_sha256":
+                      receipt["integrity"][
+                          "content_sha256"
+                      ],
+              },
+          }
+
+          record_actual = hashlib.sha256(
+              canonical_json(unsigned).encode("utf-8")
+          ).hexdigest()
+
+          record_expected = (
+              receipt["integrity"]["record_sha256"]
+          )
+
+          if record_actual != record_expected:
+              raise SystemExit(
+                  "Receipt record hash mismatch:\n"
+                  f"expected={record_expected}\n"
+                  f"actual={record_actual}"
+              )
+
+          print(
+              f"record_sha256 OK: {record_actual}"
+          )
+
+          print("\nReceipt integrity validation passed")
+          PY
+
+      - name: Contract summary
+        run: |
+          echo "Contract CI passed."
+          echo "- JSON syntax: OK"
+          echo "- JSON Schemas: OK"
+          echo "- Positive examples: OK"
+          echo "- Intentional negative example: rejected"
+          echo "- Receipt content hash: OK"
+          echo "- Receipt record hash: OK"
