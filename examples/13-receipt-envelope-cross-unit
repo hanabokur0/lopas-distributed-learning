@@ -59,7 +59,8 @@
     }
   },
   "integrity": {
-    "prev_hash": "genesis",
-    "record_sha256": "107eccfbce9ed2059b36687d2be3c2e06c24d31ec2c16dd8100ae98bcdb0a7e4"
-  }
+  "prev_hash": "genesis",
+  "content_sha256": "82bf224627f9345fb0fc058acabe19fe0b4d4f7b918318634750edff4f7bdd9b",
+  "record_sha256": "1ce98e46f1e9c8ac68653e513b1449829ed0cc98683d4be9502eec0373b8aa7d"
+}
 }
