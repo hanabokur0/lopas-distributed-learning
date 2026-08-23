@@ -1,0 +1,38 @@
+{
+  "evidence_scope": "local",
+  "rii_update_candidate": {
+    "HCD": {
+      "status": "supported",
+      "hidden_cause_candidates": [],
+      "evidence": [
+        "evidence_scope=local",
+        "outcome=correct",
+        "replay_changed=false",
+        "then=PILOT:community-evening-market@v2",
+        "now=PILOT:community-evening-market@v2"
+      ]
+    },
+    "BFR": {
+      "status": "supported",
+      "failure_mode": "none_observed",
+      "boundary": "PILOT:community-evening-market@v2",
+      "evidence": [
+        "recorded local outcome marks the historical decision as correct"
+      ]
+    },
+    "BU": {
+      "status": "supported",
+      "action": "retain_boundary",
+      "target": "PILOT:community-evening-market@v2",
+      "automatic_apply": false,
+      "boundary_update_eligible": true,
+      "rationale": "The local outcome supports the historical boundary and replay still agrees."
+    },
+    "OR": {
+      "status": "supported",
+      "interpretation": "The historical local decision remains supported by both outcome and replay."
+    }
+  },
+  "disposition": "retain",
+  "aggregate_rii_score_update": null
+}
