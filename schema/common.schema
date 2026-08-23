@@ -1,0 +1,143 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "LoPAS Distributed Learning Common Types",
+  "type": "object",
+  "$defs": {
+    "outcome_quality": {
+      "type": "string",
+      "enum": [
+        "correct",
+        "premature",
+        "missed",
+        "unknown"
+      ]
+    },
+    "evidence_scope": {
+      "type": "string",
+      "enum": [
+        "local",
+        "imported"
+      ]
+    },
+    "rii_component_status": {
+      "type": "string",
+      "enum": [
+        "supported",
+        "candidate",
+        "insufficient"
+      ]
+    },
+    "decision_snapshot": {
+      "type": "object",
+      "required": [
+        "state"
+      ],
+      "properties": {
+        "state": {
+          "type": "string"
+        },
+        "target": {}
+      },
+      "additionalProperties": false
+    },
+    "protocol_lineage": {
+      "type": "object",
+      "properties": {
+        "source_receipt_refs": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "parent_protocol_refs": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "source_git_commit": {
+          "type": "string"
+        },
+        "source_git_tag": {
+          "type": "string"
+        },
+        "source_repository": {
+          "type": "string"
+        }
+      },
+      "additionalProperties": false
+    },
+    "transfer_context_binding": {
+      "type": "object",
+      "required": [
+        "similarity",
+        "local_unknowns"
+      ],
+      "properties": {
+        "similarity": {
+          "oneOf": [
+            {
+              "type": "number",
+              "minimum": 0,
+              "maximum": 1
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "local_unknowns": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        }
+      },
+      "additionalProperties": false
+    },
+    "context_binding": {
+      "type": "object",
+      "required": [
+        "local_unit"
+      ],
+      "properties": {
+        "local_unit": {
+          "type": "string"
+        },
+        "origin_unit": {
+          "type": "string"
+        },
+        "protocol_ref": {
+          "type": "string"
+        },
+        "similarity": {
+          "oneOf": [
+            {
+              "type": "number",
+              "minimum": 0,
+              "maximum": 1
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "local_unknowns": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "imported_context": {
+          "type": "object",
+          "additionalProperties": true
+        },
+        "local_context": {
+          "type": "object",
+          "additionalProperties": true
+        }
+      },
+      "additionalProperties": false
+    }
+  }
+}
