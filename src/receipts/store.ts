@@ -24,27 +24,56 @@ export class MemoryReceiptStore implements ReceiptStore {
     return [...this.records];
   }
 
-  append<T>(kind: string, payload: T, now = new Date()): ReceiptEnvelope<T> {
-    if (!this.verify()) throw new Error("receipt chain is invalid; refusing to append");
-    const prevHash = this.records.length
-      ? this.records[this.records.length - 1].integrity.record_sha256
-      : GENESIS_HASH;
-
-    const receipt = sealReceipt(
-      {
-        schema_version: "0.1.0",
-        receipt_id: stableId("rcpt", { kind, payload }),
-        recorded_at: now.toISOString(),
-        kind,
-        payload,
-      },
-      prevHash,
+  append<T>(
+  kind: string,
+  payload: T,
+  now = new Date(),
+): ReceiptEnvelope<T> {
+  if (!this.verify()) {
+    throw new Error(
+      "receipt chain is invalid; refusing to append",
     );
-    this.records.push(receipt as ReceiptEnvelope);
-    return receipt;
   }
 
-  verify(): boolean {
-    return verifyReceiptChain(this.records);
-  }
+  const prevHash = this.records.length
+    ? this.records[this.records.length - 1]
+        .integrity.record_sha256
+    : GENESIS_HASH;
+
+  const recordedAt = now.toISOString();
+
+  const contentSha256 = sha256(
+    canonicalJson({
+      kind,
+      payload,
+    }),
+  );
+
+  const receiptId = stableId(
+    "rcpt",
+    {
+      prev_hash: prevHash,
+      recorded_at: recordedAt,
+      kind,
+      content_sha256: contentSha256,
+    },
+    20,
+  );
+
+  const receipt = sealReceipt(
+    {
+      schema_version: "0.1.0",
+      receipt_id: receiptId,
+      recorded_at: recordedAt,
+      kind,
+      payload,
+    },
+    prevHash,
+  );
+
+  this.records.push(
+    receipt as ReceiptEnvelope,
+  );
+
+  return receipt;
 }
