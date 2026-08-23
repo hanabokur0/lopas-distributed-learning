@@ -1,0 +1,100 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "Cross Unit Evidence",
+  "type": "object",
+  "required": [
+    "kind",
+    "evidence_id",
+    "framework",
+    "local_unit",
+    "source_unit",
+    "protocol_ref",
+    "source_context",
+    "local_context",
+    "context_binding",
+    "source_outcome",
+    "transferability"
+  ],
+  "properties": {
+    "kind": {
+      "const": "cross_unit_evidence"
+    },
+    "evidence_id": {
+      "type": "string"
+    },
+    "framework": {
+      "type": "string"
+    },
+    "local_unit": {
+      "type": "string"
+    },
+    "source_unit": {
+      "type": "string"
+    },
+    "protocol_ref": {
+      "type": "string"
+    },
+    "lineage": {
+      "$ref": "./common.schema.json#/$defs/protocol_lineage"
+    },
+    "source_context": {
+      "type": "object",
+      "additionalProperties": true
+    },
+    "local_context": {
+      "type": "object",
+      "additionalProperties": true
+    },
+    "context_binding": {
+      "$ref": "./common.schema.json#/$defs/transfer_context_binding"
+    },
+    "source_outcome": {
+      "type": "object",
+      "required": [
+        "decision_was",
+        "what_happened"
+      ],
+      "properties": {
+        "decision_was": {
+          "$ref": "./common.schema.json#/$defs/outcome_quality"
+        },
+        "what_happened": {
+          "type": "string"
+        },
+        "decision": {
+          "$ref": "./common.schema.json#/$defs/decision_snapshot"
+        }
+      },
+      "additionalProperties": false
+    },
+    "transferability": {
+      "type": "object",
+      "required": [
+        "status",
+        "local_verdict",
+        "local_outcome_ref",
+        "updates_local_rii"
+      ],
+      "properties": {
+        "status": {
+          "const": "remote_only"
+        },
+        "local_verdict": {
+          "type": "string",
+          "enum": [
+            "PILOT",
+            "OBSERVE_MORE"
+          ]
+        },
+        "local_outcome_ref": {
+          "type": "null"
+        },
+        "updates_local_rii": {
+          "const": false
+        }
+      },
+      "additionalProperties": false
+    }
+  },
+  "additionalProperties": false
+}
